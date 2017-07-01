@@ -28,6 +28,9 @@ function Wall(a,b,c) {
     // Perpendicular distance from co-ord x,y.
     this.distance = function(x,y) {
         return Math.abs(this.a*x + this.b*y + this.c)/Math.sqrt(this.a*this.a + this.b*this.b);
+    },
+    this.side = function(x,y) {
+        return this.a*x + this.b*y + this.c;
     }
 }
 
@@ -69,9 +72,10 @@ function doPhysics() {
 
         for (var i=0; i<wallArr.length; i++) {
             var wall=wallArr[i];
+
             var willBounce = (wall.distance(ball.x, ball.y) <= wall.thickness + ball.radius) ||
                 ((wall.a*ball.x + wall.b*ball.y + wall.c)*(wall.a*(ball.x+(ball.vx/UPDATES_PER_FRAME)) + wall.b*(ball.y + (ball.vy/UPDATES_PER_FRAME)) + wall.c) < 0);
-            
+
             if (willBounce) {
                 var angleWall = Math.atan(-wall.a/wall.b);
                 
@@ -86,6 +90,14 @@ function doPhysics() {
                 //Rotate back                
                 ball.vx = wx*Math.cos(angleWall) - wy*Math.sin(angleWall);
                 ball.vy = wx*Math.sin(angleWall) + wy*Math.cos(angleWall);
+
+                //Check to see whether it'll still get stuck
+                var wallLoops = 0;
+                while ((wall.distance(ball.x + (ball.vx/UPDATES_PER_FRAME), ball.y + (ball.vy/UPDATES_PER_FRAME)) <= wall.thickness + ball.radius) && wallLoops < 10) {
+                    ball.x += (ball.vx/UPDATES_PER_FRAME) + Math.random()*3;
+                    ball.y += (ball.vy/UPDATES_PER_FRAME) + Math.random()*3;
+                    wallLoops++;
+                }
             }
         }
 
